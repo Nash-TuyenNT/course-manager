@@ -22,7 +22,9 @@ def get_db():
     finally:
         db.close()
 
+
 router = APIRouter(tags=["auth"])
+
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -30,7 +32,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    access_token = create_access_token(data={"sub": user.username, "user_id": user.id, "role_id": user.role_id})
+    access_token = create_access_token(data={"sub": user.username, "user_id": user.id, "role": user.role})
     new_refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
     response = JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
@@ -44,6 +46,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     )
     return response
 
+
 @router.post("/register", response_model=UserResponse)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.username == user_data.username).first()
@@ -51,6 +54,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already exists")
 
     return user_crud.create_user(db, user_data)
+
 
 @router.post("/auth/refresh-token")
 def refresh_token(request: Request):
@@ -71,5 +75,3 @@ def refresh_token(request: Request):
         raise HTTPException(status_code=401, detail="Refresh token expired")
     except JWTError:
         raise HTTPException(status_code=403, detail="Invalid refresh token")
-
-

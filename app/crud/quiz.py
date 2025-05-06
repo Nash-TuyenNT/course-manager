@@ -1,7 +1,10 @@
 from datetime import datetime
+from http import HTTPStatus
 
 from fastapi import HTTPException
+from fastapi.responses import UJSONResponse
 from sqlalchemy.orm import Session
+from starlette.responses import Response
 
 from app.models.quiz_models import LessonQuiz, QuizQuestion
 from app.models.quiz_models import StudentQuizResult
@@ -29,7 +32,8 @@ def create_quiz_with_questions(quiz: QuizCreate, db: Session):
         db.add(question)
 
     db.commit()
-    return {"message": "Quiz created", "quiz_id": db_quiz.id}
+    return UJSONResponse(status_code=201, content={"message": "Quiz created", "quiz_id": db_quiz.id})
+
 
 def get_quiz_by_lesson(lesson_id: int, user_id: int, db: Session):
     quiz = db.query(LessonQuiz).filter_by(lesson_id=lesson_id).first()
@@ -53,22 +57,24 @@ def get_quiz_by_lesson(lesson_id: int, user_id: int, db: Session):
         "submitted_attempts": len(results),
         "score": latest_result.score if latest_result else None,
         "selected_answers": latest_result.selected_answers if latest_result else {},
-        "correct_answers": {q.id: q.correct_answer for q in questions},
         "questions": [
             {
                 "id": q.id,
                 "question": q.question,
                 "choices": q.choices,
-                "correct_answer": q.correct_answer
             } for q in questions
         ]
     }
 
-def submit_quiz(submission, user_id: int, db: Session):
-    quiz = db.query(LessonQuiz).filter(LessonQuiz.id == submission.quiz_id).first()
+
+def find_quiz_by_id(quiz_id: int, db: Session):
+    quiz = db.query(LessonQuiz).filter_by(id=quiz_id).first()
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")
+    return quiz
 
+
+def submit_quiz(quiz: LessonQuiz, submission, user_id: int, db: Session):
     # Check attempt limit
     attempt_count = db.query(StudentQuizResult).filter_by(
         user_id=user_id, quiz_id=quiz.id
@@ -110,23 +116,31 @@ def submit_quiz(submission, user_id: int, db: Session):
     db.add(result)
     db.commit()
 
-    return {
+    return UJSONResponse(status_code=200, content={
         "message": "Quiz submitted",
         "score": percent_score,
         "total": len(questions)
-    }
+    })
+
 
 def get_lesson_completion_status(user_id: int, lesson_id: int, db):
-    quiz = db.query(LessonQuiz).filter_by(lesson_id=lesson_id).first()
-    if not quiz:
+    quizzes = db.query(LessonQuiz).filter_by(lesson_id=lesson_id).all()
+    if not quizzes:
         return False  # no quiz means cannot be completed
 
-    result = db.query(StudentQuizResult).filter_by(quiz_id=quiz.id, user_id=user_id).first()
+    quiz_ids = [q.id for q in quizzes]
+    result = db.query(StudentQuizResult).filter(
+        StudentQuizResult.quiz_id.in_(quiz_ids),
+        StudentQuizResult.user_id == user_id
+    ).order_by(StudentQuizResult.id.desc()).first()
     if not result:
         return False
 
-    total_questions = db.query(QuizQuestion).filter_by(quiz_id=quiz.id).count()
+    total_questions = db.query(QuizQuestion).filter(QuizQuestion.quiz_id.in_(quiz_ids)).count()
     return result.score >= 0.6 * total_questions  # 60% threshold
+
+
+# todo update function to handle multiple quizzes and threshold.
 
 def update_quiz(quiz_id: int, data: QuizUpdate, db: Session):
     quiz = db.query(LessonQuiz).filter_by(id=quiz_id).first()
@@ -144,7 +158,8 @@ def update_quiz(quiz_id: int, data: QuizUpdate, db: Session):
             question.correct_answer = updated.correct_answer
 
     db.commit()
-    return {"message": "Quiz updated successfully"}
+    return UJSONResponse(status_code=200, content={"message": "Quiz updated successfully"})
+
 
 def delete_quiz(quiz_id: int, db: Session):
     quiz = db.query(LessonQuiz).filter_by(id=quiz_id).first()
@@ -156,10 +171,10 @@ def delete_quiz(quiz_id: int, db: Session):
     db.query(QuizQuestion).filter_by(quiz_id=quiz_id).delete()
     db.delete(quiz)
     db.commit()
-    return {"message": "Quiz deleted"}
+    return Response(status_code=HTTPStatus.NO_CONTENT)
+
 
 def get_quiz_results(quiz_id: int, db: Session):
-
     results = (
         db.query(StudentQuizResult, User)
         .join(User, StudentQuizResult.user_id == User.id)
@@ -168,7 +183,7 @@ def get_quiz_results(quiz_id: int, db: Session):
         .all()
     )
 
-    return [
+    return UJSONResponse(status_code=200, content=[
         {
             "user_id": user.id,
             "username": user.username,
@@ -178,5 +193,4 @@ def get_quiz_results(quiz_id: int, db: Session):
             "selected_answers": result.selected_answers,
         }
         for result, user in results
-    ]
-
+    ])

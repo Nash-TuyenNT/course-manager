@@ -1,10 +1,12 @@
+from http import HTTPStatus
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from starlette.responses import Response
 
 from app.models.course import Course
 from app.models.lesson import Lesson
 from app.models.user import User
-from app.models.user_course import UserCourse
 from app.models.user_lesson_progress import UserLessonProgress
 from app.schemas.lesson import LessonCreate, LessonUpdate
 
@@ -12,9 +14,9 @@ from app.schemas.lesson import LessonCreate, LessonUpdate
 def create_lesson(course_id: int, lesson: LessonCreate, db: Session, current_user_id: int):
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Course not found")
     if course.creator_id != current_user_id:
-        raise HTTPException(status_code=403, detail="You are not the owner of this course")
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="You are not the owner of this course")
 
     new_lesson = Lesson(title=lesson.title, content=lesson.content, course_id=course_id)
     db.add(new_lesson)
@@ -22,51 +24,34 @@ def create_lesson(course_id: int, lesson: LessonCreate, db: Session, current_use
     db.refresh(new_lesson)
     return new_lesson
 
-def get_lessons(course_id: int, db: Session, current_user: User):
-    course = db.query(Course).filter(Course.id == course_id).first()
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
 
-    if course.creator_id != current_user.id and current_user.role_id == 1:
-        raise HTTPException(status_code=403, detail="You are not allowed to view lessons for this course")
-
+def get_lessons(course_id: int, db: Session):
     lessons = db.query(Lesson).filter(Lesson.course_id == course_id).all()
     return lessons
 
-def update_lesson(lesson_id: int, update: LessonUpdate, db: Session, current_user_id: int):
+
+def find_lesson(lesson_id: int, db: Session):
     lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
     if not lesson:
         raise HTTPException(status_code=404, detail="Lesson not found")
+    return lesson
 
-    course = db.query(Course).filter(Course.id == lesson.course_id).first()
-    if course.creator_id != current_user_id:
-        raise HTTPException(status_code=403, detail="You cannot edit this lesson")
 
+def update_lesson(lesson: Lesson, update: LessonUpdate, db: Session):
     lesson.title = update.title
     lesson.content = update.content
     db.commit()
     db.refresh(lesson)
     return lesson
 
-def delete_lesson(lesson_id: int, db: Session, current_user_id: int):
-    lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
-    if not lesson:
-        raise HTTPException(status_code=404, detail="Lesson not found")
 
-    course = db.query(Course).filter(Course.id == lesson.course_id).first()
-    if course.creator_id != current_user_id:
-        raise HTTPException(status_code=403, detail="You cannot delete this lesson")
-
+def delete_lesson(lesson: Lesson, db: Session):
     db.delete(lesson)
     db.commit()
-    return {"message": "Lesson deleted successfully"}
+    return Response(status_code=HTTPStatus.NO_CONTENT)
+
 
 def get_lessons_with_progress(course_id: int, db: Session, current_user: User):
-    # Ensure student is enrolled
-    enrolled = db.query(UserCourse).filter_by(user_id=current_user.id, course_id=course_id).first()
-    if not enrolled:
-        raise HTTPException(status_code=403, detail="Not enrolled in this course")
-
     lessons = db.query(Lesson).filter(Lesson.course_id == course_id).all()
     progress_map = {
         row.lesson_id: row.is_completed

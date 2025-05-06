@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.orm import relationship
 
+from app.enums.roles import Roles
 from app.models import Base
 
 
@@ -11,10 +12,8 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     password = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
-    role_id = Column(Integer, ForeignKey("roles.id"))
+    role = Column(Enum(Roles), nullable=False)
 
-    role = relationship("Role", back_populates="users")
     created_courses = relationship("Course", back_populates="creator")
-
     # store the courses which user is enrolling
     courses = relationship("UserCourse", back_populates="user")

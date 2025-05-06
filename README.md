@@ -89,7 +89,7 @@ uvicorn app.main:app --reload
 
 JWT-based login system (access token and refresh token strategy)
 
-Role-based access control (Student, Teacher, Admin)
+Attribute-Based Access Control (ABAC) (Student, Teacher, Admin)
 
 Session timeout handling with token refresh
 

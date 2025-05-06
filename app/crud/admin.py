@@ -1,11 +1,14 @@
+from http import HTTPStatus
+
 from fastapi import HTTPException
 from sqlalchemy import Integer, or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql import func
+from starlette.responses import Response
 
+from app.enums.roles import Roles
 from app.models.course import Course
 from app.models.lesson import Lesson
-from app.models.role import Role
 from app.models.user import User
 from app.models.user_course import UserCourse
 from app.models.user_lesson_progress import UserLessonProgress
@@ -33,8 +36,9 @@ def get_admin_dashboard_data(db: Session):
         "average_completion_rate": round(completion_avg * 100, 2)
     }
 
-def get_all_users(db: Session, search: str = None, role_id: int = None):
-    query = db.query(User).join(Role).options()
+
+def get_all_users(db: Session, search: str = None, role: Roles = None):
+    query = db.query(User).options()
 
     if search:
         like_pattern = f"%{search}%"
@@ -45,10 +49,11 @@ def get_all_users(db: Session, search: str = None, role_id: int = None):
             )
         )
 
-    if role_id:
-        query = query.filter(User.role_id == role_id)
+    if role:
+        query = query.filter(User.role == role)
 
     return query.all()
+
 
 def get_all_courses_with_stats(db: Session):
     courses = db.query(Course).options(joinedload(Course.creator)).all()
@@ -102,6 +107,7 @@ def get_all_courses_with_stats(db: Session):
 
     return course_data
 
+
 def get_course_details(course_id: int, db: Session):
     course = (
         db.query(Course)
@@ -109,7 +115,7 @@ def get_course_details(course_id: int, db: Session):
         .options(
             joinedload(Course.creator),
             joinedload(Course.lessons),
-            joinedload(Course.users) # enrolled students list
+            joinedload(Course.users)  # enrolled students list
         )
         .first()
     )
@@ -118,6 +124,7 @@ def get_course_details(course_id: int, db: Session):
         raise HTTPException(status_code=404, detail="Course not found")
 
     return course
+
 
 def update_course(course_id: int, update_data: schema.CourseUpdate, db: Session):
     course = db.query(Course).filter(Course.id == course_id).first()
@@ -130,6 +137,7 @@ def update_course(course_id: int, update_data: schema.CourseUpdate, db: Session)
     db.refresh(course)
     return course
 
+
 def delete_course(course_id: int, db: Session):
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
@@ -137,4 +145,4 @@ def delete_course(course_id: int, db: Session):
 
     db.delete(course)
     db.commit()
-    return {"message": "Course deleted successfully"}
+    return Response(status_code=HTTPStatus.NO_CONTENT)
