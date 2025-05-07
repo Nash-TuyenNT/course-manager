@@ -57,7 +57,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/auth/refresh-token")
-def refresh_token(request: Request):
+def refresh_token(request: Request, db: Session = Depends(get_db)):
     request_refresh_token = request.cookies.get("refresh_token")
     if not request_refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token missing")
@@ -67,9 +67,9 @@ def refresh_token(request: Request):
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=403, detail="Invalid refresh token")
-
+        user = user_crud.get_user(db, user_id)
         # Optional: Verify refresh token against DB
-        new_token = create_access_token({"sub": user_id}, expires_delta=timedelta(minutes=15))
+        new_token = create_access_token(data={"sub": user.username, "user_id": user.id, "role": user.role}, expires_delta=timedelta(minutes=15))
         return {"access_token": new_token}
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Refresh token expired")
