@@ -12,7 +12,7 @@ class AttendanceSessionCreate(BaseModel):
 class AttendanceSessionResponse(AttendanceSessionCreate):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class StudentAttendanceResponse(BaseModel):
     id: int
@@ -21,4 +21,4 @@ class StudentAttendanceResponse(BaseModel):
     status: str
     timestamp: datetime
     class Config:
-        orm_mode = True
+        from_attributes = True

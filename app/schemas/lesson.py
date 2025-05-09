@@ -19,7 +19,7 @@ class LessonResponse(LessonBase):
     course_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SimpleLessonResponse(BaseModel):
@@ -28,4 +28,4 @@ class SimpleLessonResponse(BaseModel):
     content: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True

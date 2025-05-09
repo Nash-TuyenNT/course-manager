@@ -17,7 +17,7 @@ class UserResponse(UserBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SimpleUserResponse(BaseModel):
@@ -26,4 +26,4 @@ class SimpleUserResponse(BaseModel):
     email: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True

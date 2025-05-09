@@ -18,7 +18,7 @@ class CourseResponse(CourseBase):
     id: int
     creator_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CourseWithProgress(CourseBase):
     id: int
@@ -36,7 +36,7 @@ class CreatorInCourse(BaseModel):
     username: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CourseAdminResponse(BaseModel):
     id: int
@@ -48,7 +48,7 @@ class CourseAdminResponse(BaseModel):
     avg_completion_rate: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CourseDetailResponse(BaseModel):
     id: int
@@ -59,4 +59,4 @@ class CourseDetailResponse(BaseModel):
     users: list[SimpleUserResponse]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
