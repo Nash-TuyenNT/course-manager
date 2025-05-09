@@ -131,7 +131,7 @@ def enroll_user_by_teacher(course_id: int, user_id: int, db: Session):
 
 
 def find_course(course_id: int, db: Session):
-    course = db.query(Course).filter(Course.id == course_id).first()
+    course: Course | None = db.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Course not found")
     return course

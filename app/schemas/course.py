@@ -26,6 +26,11 @@ class CourseWithProgress(CourseBase):
     progress: int = 0
     is_completed: bool
 
+class CourseWithLesson(CourseResponse):
+    lessons: list[SimpleLessonResponse] = []
+    is_enrolled: bool = False
+    is_completed: bool = False
+
 class CreatorInCourse(BaseModel):
     id: int
     username: str

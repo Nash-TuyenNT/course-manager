@@ -12,6 +12,7 @@ from ..models.user import User
 from ..roles.permission import check_permission
 from ..schemas import course as course_schema
 from ..schemas import user as user_schema
+from ..schemas.course import CourseWithLesson
 
 router = APIRouter(prefix="/courses", tags=["Courses"])
 
@@ -31,6 +32,25 @@ def create_course(course: course_schema.CourseCreate, db: Session = Depends(get_
     check_permission(current_user, Actions.CREATE, Resources.COURSE)
 
     return course_crud.create_course(db=db, course=course, creator_id=current_user.id)
+
+
+@router.get("/{course_id}", response_model=course_schema.CourseWithLesson)
+def get_course(course_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    course = course_crud.find_course(course_id, db)
+    check_permission(current_user, Actions.READ, Resources.COURSE, course)
+
+    is_enrolled = False
+    is_completed = False
+    enrolled = next((uc for uc in course.users if uc.user_id == current_user.id), None)
+    if enrolled:
+        is_enrolled = True
+        if enrolled.is_completed:
+            is_completed = True
+
+    return CourseWithLesson.model_validate(course, from_attributes=True).model_copy(update={
+        "is_enrolled": is_enrolled,
+        "is_completed": is_completed
+    })
 
 
 # Update an existing course

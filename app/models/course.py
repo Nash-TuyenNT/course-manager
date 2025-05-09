@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped
 
 from app.models import Base
+from app.models.user_course import UserCourse
 
 
 class Course(Base):
@@ -11,7 +12,7 @@ class Course(Base):
     title = Column(String, unique=True, index=True)
     description = Column(String)
     # store the list of enrolled users
-    users = relationship("UserCourse", back_populates="course")
+    users: Mapped[list["UserCourse"]] = relationship("UserCourse", back_populates="course")
 
     # store the id of the course creator
     creator_id = Column(Integer, ForeignKey("users.id"))
