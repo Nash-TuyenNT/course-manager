@@ -100,16 +100,16 @@ It supports student enrollment, lesson and quiz management, attendance tracking,
 
 # Technology Stack
 
-| Layer            | Technology                  |
-|-------------------|-----------------------------|
-| **Backend**       | FastAPI (Python)           |
-| **Database**      | PostgreSQL                 |
-| **ORM**           | SQLAlchemy                 |
-| **Authentication**| OAuth2 + JWT (PyJWT)       |
-| **Migrations**    | Alembic                    |
-| **Frontend**      | ReactJS (separate repo)    |
-| **HTTP Requests** | Axios                      |
-| **AI Integration**| Google Generative AI (Gemini 2.0), SerpAPI |
+| Layer              | Technology                                 |
+|--------------------|--------------------------------------------|
+| **Backend**        | FastAPI (Python)                           |
+| **Database**       | PostgreSQL                                 |
+| **ORM**            | SQLAlchemy                                 |
+| **Authentication** | OAuth2 + JWT (PyJWT)                       |
+| **Migrations**     | Alembic                                    |
+| **Frontend**       | ReactJS (separate repo)                    |
+| **HTTP Requests**  | Axios                                      |
+| **AI Integration** | Google Generative AI (Gemini 2.0), SerpAPI |
 
 # Development Notes
 - Ensure the `.env` file is properly configured with valid API keys and database credentials.

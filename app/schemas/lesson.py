@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.schemas.quiz import QuizDetailResponse
+
 
 class LessonBase(BaseModel):
     title: str
@@ -27,5 +29,11 @@ class SimpleLessonResponse(BaseModel):
     title: str
     content: str
 
+    class Config:
+        from_attributes = True
+
+class LessonDetailResponse(LessonBase):
+    id: int
+    quiz: list[QuizDetailResponse] = []
     class Config:
         from_attributes = True

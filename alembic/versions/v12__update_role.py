@@ -21,8 +21,8 @@ def upgrade():
         END
         """
     )
-    op.add_column('lessons', sa.Column('creator_id', sa.String()))
-    op.add_column('attendance_sessions', sa.Column('creator_id', sa.String()))
+    op.add_column('lessons', sa.Column('creator_id', sa.NUMERIC()))
+    op.add_column('attendance_sessions', sa.Column('creator_id', sa.NUMERIC()))
     op.alter_column("users", "role_id", new_column_name="role")
     op.drop_table('roles')
 

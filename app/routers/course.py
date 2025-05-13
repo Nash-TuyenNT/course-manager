@@ -84,10 +84,11 @@ def mark_course_complete(course_id: int, db: Session = Depends(get_db), current_
 
 # Get all courses
 @router.get("/", response_model=List[course_schema.CourseResponse])
-def get_courses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_courses(creator: int | None = None, db: Session = Depends(get_db),
+                current_user: User = Depends(get_current_user)):
     check_permission(current_user, Actions.READ, Resources.COURSE)
 
-    return course_crud.get_courses(db=db)
+    return course_crud.get_courses(creator, db=db)
 
 
 # Enroll user in course by themselves

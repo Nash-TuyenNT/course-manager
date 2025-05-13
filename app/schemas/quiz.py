@@ -14,6 +14,18 @@ class QuizCreate(BaseModel):
     max_attempts: Optional[int] = 1
     questions: List[QuestionCreate]
 
+class QuestionsResponse(BaseModel):
+    id: int
+    question: str
+    choices: List[str]
+    correct_answer: str
+
+class QuizDetailResponse(BaseModel):
+    id: int
+    title: str
+    max_attempts: int
+    questions: List[QuestionsResponse] = []
+
 class AnswerSubmit(BaseModel):
     question_id: int
     selected: str

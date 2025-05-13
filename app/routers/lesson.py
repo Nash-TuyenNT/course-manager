@@ -14,7 +14,7 @@ from app.enums.actions import Actions
 from app.enums.resourses import Resources
 from app.models.user import User
 from app.roles.permission import check_permission
-from app.schemas.lesson import LessonCreate, LessonUpdate, LessonResponse
+from app.schemas.lesson import LessonCreate, LessonUpdate, LessonResponse, LessonDetailResponse
 
 router = APIRouter(prefix="/lessons", tags=["lessons"])
 
@@ -79,3 +79,10 @@ def is_lesson_completed(lesson_id: int, db: Session = Depends(get_db), current_u
 
     completed = quiz_crud.get_lesson_completion_status(current_user.id, lesson_id, db)
     return UJSONResponse(status_code=HTTPStatus.OK, content={"lesson_id": lesson_id, "is_completed": completed})
+
+@router.get("/{lesson_id}")
+def get_lesson(lesson_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    lesson = lesson_crud.find_lesson(lesson_id, db)
+    check_permission(current_user, Actions.READ, Resources.LESSON, lesson)
+
+    return LessonDetailResponse.model_validate(lesson, from_attributes=True)

@@ -18,7 +18,7 @@ def create_lesson(course_id: int, lesson: LessonCreate, db: Session, current_use
     if course.creator_id != current_user_id:
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="You are not the owner of this course")
 
-    new_lesson = Lesson(title=lesson.title, content=lesson.content, course_id=course_id)
+    new_lesson = Lesson(title=lesson.title, content=lesson.content, course_id=course_id, creator_id=current_user_id)
     db.add(new_lesson)
     db.commit()
     db.refresh(new_lesson)

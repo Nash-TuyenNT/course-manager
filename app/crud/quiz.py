@@ -10,7 +10,7 @@ from app.models.quiz_models import LessonQuiz, QuizQuestion
 from app.models.quiz_models import StudentQuizResult
 from app.models.user import User
 from app.models.user_lesson_progress import UserLessonProgress
-from app.schemas.quiz import QuizCreate, QuizUpdate
+from app.schemas.quiz import QuizCreate, QuizUpdate, QuizDetailResponse
 
 
 def create_quiz_with_questions(quiz: QuizCreate, db: Session):
@@ -32,7 +32,7 @@ def create_quiz_with_questions(quiz: QuizCreate, db: Session):
         db.add(question)
 
     db.commit()
-    return UJSONResponse(status_code=201, content={"message": "Quiz created", "quiz_id": db_quiz.id})
+    return QuizDetailResponse.model_validate(db_quiz, from_attributes=True)
 
 
 def get_quiz_by_lesson(lesson_id: int, user_id: int, db: Session):

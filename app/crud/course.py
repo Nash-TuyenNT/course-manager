@@ -56,7 +56,9 @@ def mark_course_complete(course_id: int, current_user_id: int, db: Session):
     return UJSONResponse(status_code=HTTPStatus.OK, content={"message": "Course marked as completed"})
 
 
-def get_courses(db: Session):
+def get_courses(creator: int | None, db: Session):
+    if creator:
+        return db.query(Course).filter_by(creator_id=creator).all()
     return db.query(Course).all()
 
 

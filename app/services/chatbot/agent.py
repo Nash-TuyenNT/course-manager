@@ -17,7 +17,7 @@ prompt = ChatPromptTemplate.from_messages([
                "You can also search the web for information if you don't know the answer."),
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{input}"),
-    MessagesPlaceholder(variable_name="agent_scratchpad"),  # bắt buộc để agent ghi lại tool calling
+    MessagesPlaceholder(variable_name="agent_scratchpad"),
 ])
 
 # Tạo agent với retriever + Google search
