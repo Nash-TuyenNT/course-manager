@@ -1,7 +1,15 @@
+from typing import Literal, List
+
 from pydantic import BaseModel
 
+class Message(BaseModel):
+    sender: Literal["human", "ai"]
+    content: str
+
 class ChatRequest(BaseModel):
-    message: str
+    input: str
+    history: List[Message] = []
 
 class ChatResponse(BaseModel):
-    reply: str
+    output: str
+    history: List[Message]
